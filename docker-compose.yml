@@ -1,0 +1,11 @@
+version: "3"
+services:
+  app:
+    build: ./Api
+
+    ports:
+      - 7000:5000
+      
+    volumes: 
+      - ./Api:/src
+      - /var/run/mysqld:/var/run/mysqld

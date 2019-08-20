@@ -1,0 +1,7 @@
+requests
+flask
+flask-mysqldb
+flask_restful
+flask_cors
+uuid
+jsonify

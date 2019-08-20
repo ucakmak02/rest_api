@@ -98,4 +98,4 @@ api.add_resource(ForgotPassword,"/forgotPassword/<string:username>/<string:oldPa
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",port=65432,debug=True)
+    app.run(host="0.0.0.0",debug=True)
