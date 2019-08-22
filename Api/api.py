@@ -27,7 +27,7 @@ mysql = MySQL(app)
 class SignIn(Resource):
     def post(self,username,password,tokenNotification):
         cur = mysql.connection.cursor()
-        cur.execute("SELECT user_password,token FROM user WHERE username = {}".format(username))
+        cur.execute("SELECT user_password,token FROM user WHERE username = %s",[username])
         data =cur.fetchall()
         # Checking username
         if data == ():
@@ -46,7 +46,7 @@ class SignIn(Resource):
                 if token_data == tokenNotification:
                     pass
                 elif token_data == None:
-                     cur.execute("UPDATE user SET token={} WHERE username={};".format(tokenNotification,username))
+                     cur.execute("UPDATE user SET token=%s WHERE username=%s;",[tokenNotification,username])
                      # Commit to DB
                      mysql.connection.commit()
                 else:
@@ -65,7 +65,7 @@ class SignIn(Resource):
 class ForgotPassword(Resource):
     def post(self,username,oldPassword,password):
         cur = mysql.connection.cursor()
-        cur.execute("SELECT user_password FROM user WHERE username = {}".format(username))
+        cur.execute("SELECT user_password FROM user WHERE username = %s",[username])
         data =cur.fetchall()
         json_data =list(data)
 
