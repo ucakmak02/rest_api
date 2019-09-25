@@ -1,11 +1,18 @@
 import requests
 import json
 import jsonify
-from flask import jsonify, Flask,request
+from flask import jsonify, Flask,request, Response
 from flask_restful import Resource, Api
 from flask_cors import CORS
 import uuid
 from flask_mysqldb import MySQL
+
+import numpy as np
+import cv2
+import os
+# image save path
+path = "/Users/lews/hs/projects/HomeSafety/rest_api/Api"
+
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
@@ -89,7 +96,21 @@ class ForgotPassword(Resource):
         # Close connection
         cur.close()       
         return postContent
-
+        
+@app.route("/send_images/<string:cust_id>",methods=["POST"])
+def send_images(cust_id):
+    # checks if customer folder exists
+    if not os.path.exists(os.path.join(path, cust_id)):
+        os.makedirs(os.path.join(path, cust_id))
+    # get the current number of images on customer folder
+    number = len(os.listdir(os.path.join(path, cust_id)))
+    nparr = np.fromstring(request.data, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    # save image to customer folder
+    cv2.imwrite(os.path.join(path, cust_id,f"{number}.jpg"), img)
+    return jsonify(message='image received.',
+                    status=200
+                )
 #Rest Api Resource Areas
     #SignIn Sources
 api.add_resource(SignIn,"/<string:username>/<string:password>/<string:tokenNotification>")
