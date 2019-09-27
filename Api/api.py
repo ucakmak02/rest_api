@@ -1,11 +1,12 @@
 import requests
 import json
 import jsonify
-from flask import jsonify, Flask,request, Response
+from flask import jsonify, Flask,request, Response, abort,send_from_directory
 from flask_restful import Resource, Api
 from flask_cors import CORS
 import uuid
 from flask_mysqldb import MySQL
+from functools import wraps
 
 import numpy as np
 import cv2
@@ -13,7 +14,7 @@ import os
 # image save path
 path = "/Users/lews/hs/projects/HomeSafety/rest_api/Api"
 
-app = Flask(__name__)
+app = Flask(__name__,instance_path="/home/ugur/hs/projects/RestApiHomeSafety/Api/static")
 CORS(app)
 api = Api(app)
 app.secret_key='secret123'
@@ -96,7 +97,55 @@ class ForgotPassword(Resource):
         # Close connection
         cur.close()       
         return postContent
-        
+
+
+
+def special_requirement(f):
+    @wraps(f)
+    def wrap(*args ,**kwargs):
+        try:
+            appSecretKey = "bluerabbitt"
+            if appSecretKey == "bluerabbit":
+                return f(*args ,**kwargs)
+            else:
+                return "access close"
+        except:
+            return "wrap except"
+    return wrap
+
+@app.route("/static/<string:filename>/")
+@special_requirement
+def protected(filename):
+    try:
+        print(filename)
+        return send_from_directory(os.path.join(app.instance_path,''),filename)
+
+    except Exception as e:
+        return e
+
+@app.route("/static/<string:filename>/<string:appSecretKey>/")
+
+def protectedOpenWithKey(filename,appSecretKey):
+    def special_requirement(f):
+        @wraps(f)
+        def wrap(*args ,**kwargs):
+            try:
+                if appSecretKey == "bluerabbit":
+                    return f(*args ,**kwargs)
+                else:
+                    return "token except"
+            except:
+                return "wrap except"
+        return wrap
+    @special_requirement
+    def decorater(filename,appSecretKey):
+        try:
+            return send_from_directory(os.path.join(app.instance_path,''),filename)
+
+        except Exception as e:
+            return e
+    return decorater(filename,appSecretKey)
+
 @app.route("/send_images/<string:cust_id>",methods=["POST"])
 def send_images(cust_id):
     # checks if customer folder exists
@@ -116,6 +165,10 @@ def send_images(cust_id):
 api.add_resource(SignIn,"/<string:username>/<string:password>/<string:tokenNotification>")
     #forgetPassword Sources
 api.add_resource(ForgotPassword,"/forgotPassword/<string:username>/<string:oldPassword>/<string:password>")
+
+
+
+
 
 
 if __name__ == '__main__':
