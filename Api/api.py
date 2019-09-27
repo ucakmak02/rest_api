@@ -13,8 +13,8 @@ import cv2
 import os
 # image save path
 path = "/home/dreamventures/hs/projects/HomeSafety/RestApi/Api/static"
-
-app = Flask(__name__,instance_path="/home/ugur/hs/projects/RestApiHomeSafety/Api/static")
+path2 = "/home/ugur/hs/projects/RestApiHomeSafety/Api/static"
+app = Flask(__name__,instance_path=path)
 CORS(app)
 api = Api(app)
 app.secret_key='secret123'
