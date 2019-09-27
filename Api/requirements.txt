@@ -6,4 +6,4 @@ flask_cors
 uuid
 jsonify
 numpy
-cv2
+opencv-python
