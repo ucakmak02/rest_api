@@ -11,9 +11,12 @@ from functools import wraps
 import numpy as np
 import cv2
 import os
-# image save path
+import subprocess
 
-path =os.path.join(os.environ['HOME'], 'hs', 'projects','HomeSafety','RestApi','Api','static')
+# Simple command
+print(subprocess.call(['pwd'], shell=True))
+# image save path
+path ="/src/static/"
 
 app = Flask(__name__,instance_path=path)
 CORS(app)
