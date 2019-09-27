@@ -113,19 +113,19 @@ def special_requirement(f):
             return "wrap except"
     return wrap
 
-@app.route("/static/<string:filename>/")
+@app.route("/static/<string:foldername>/<string:filename>/")
 @special_requirement
-def protected(filename):
+def protected(foldername,filename):
     try:
-        print(filename)
-        return send_from_directory(os.path.join(app.instance_path,''),filename)
+        return send_from_directory(os.path.join(app.instance_path,''),foldername+"/"+filename)
 
     except Exception as e:
         return e
 
-@app.route("/static/<string:filename>/<string:appSecretKey>/")
+@app.route("/static/<string:foldername>/<string:filename>/<string:appSecretKey>/")
 
-def protectedOpenWithKey(filename,appSecretKey):
+def protectedOpenWithKey(foldername,filename,appSecretKey):
+
     def special_requirement(f):
         @wraps(f)
         def wrap(*args ,**kwargs):
@@ -138,13 +138,13 @@ def protectedOpenWithKey(filename,appSecretKey):
                 return "wrap except"
         return wrap
     @special_requirement
-    def decorater(filename,appSecretKey):
+    def decorater(foldername,filename,appSecretKey):
         try:
-            return send_from_directory(os.path.join(app.instance_path,''),filename)
+            return send_from_directory(os.path.join(app.instance_path,''),foldername+"/"+filename)
 
         except Exception as e:
             return e
-    return decorater(filename,appSecretKey)
+    return decorater(foldername,filename,appSecretKey)
 
 @app.route("/send_images/<string:cust_id>",methods=["POST"])
 def send_images(cust_id):
