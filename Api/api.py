@@ -98,30 +98,54 @@ class ForgotPassword(Resource):
         cur.close()       
         return postContent
 
+
+
 def special_requirement(f):
     @wraps(f)
     def wrap(*args ,**kwargs):
         try:
-            appSecretKey="bluerabbit"
+            appSecretKey = "bluerabbitt"
             if appSecretKey == "bluerabbit":
                 return f(*args ,**kwargs)
             else:
-                return "username except"
+                return "access close"
         except:
             return "wrap except"
     return wrap
 
-@app.route("/static/<string:filename>")
+@app.route("/static/<string:filename>/")
 @special_requirement
 def protected(filename):
     try:
+        print(filename)
         return send_from_directory(os.path.join(app.instance_path,''),filename)
 
     except Exception as e:
         return e
 
+@app.route("/static/<string:filename>/<string:appSecretKey>/")
 
-        
+def protectedOpenWithKey(filename,appSecretKey):
+    def special_requirement(f):
+        @wraps(f)
+        def wrap(*args ,**kwargs):
+            try:
+                if appSecretKey == "bluerabbit":
+                    return f(*args ,**kwargs)
+                else:
+                    return "token except"
+            except:
+                return "wrap except"
+        return wrap
+    @special_requirement
+    def decorater(filename,appSecretKey):
+        try:
+            return send_from_directory(os.path.join(app.instance_path,''),filename)
+
+        except Exception as e:
+            return e
+    return decorater(filename,appSecretKey)
+
 @app.route("/send_images/<string:cust_id>",methods=["POST"])
 def send_images(cust_id):
     # checks if customer folder exists
@@ -141,6 +165,9 @@ def send_images(cust_id):
 api.add_resource(SignIn,"/<string:username>/<string:password>/<string:tokenNotification>")
     #forgetPassword Sources
 api.add_resource(ForgotPassword,"/forgotPassword/<string:username>/<string:oldPassword>/<string:password>")
+
+
+
 
 
 
