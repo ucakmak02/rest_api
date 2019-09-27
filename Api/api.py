@@ -13,8 +13,6 @@ import cv2
 import os
 import subprocess
 
-# Simple command
-print(subprocess.call(['pwd'], shell=True))
 # image save path
 path ="/src/static/"
 
