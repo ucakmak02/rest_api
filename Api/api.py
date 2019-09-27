@@ -12,7 +12,7 @@ import numpy as np
 import cv2
 import os
 # image save path
-path = "/Users/lews/hs/projects/HomeSafety/rest_api/Api"
+path = "/home/dreamventures/hs/projects/HomeSafety/RestApi/Api/static"
 
 app = Flask(__name__,instance_path="/home/ugur/hs/projects/RestApiHomeSafety/Api/static")
 CORS(app)
