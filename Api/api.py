@@ -36,10 +36,32 @@ mysql = MySQL(app)
 
 class SignIn(Resource):
     def post(self,username,password,tokenNotification):
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT user_password,token FROM user WHERE username = %s",[username])
-        data =cur.fetchall()
+
+        # Take Datas in Mysql with Username
+        def data(username):
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT user_password,token,token_storage FROM user WHERE username = %s",[username])
+            data =cur.fetchall()
+            return data
+
+        # Create Token For App Storage and Save It
+        def generateStorageToken(token_storage_data):
+            if token_storage_data == None:
+                token_storage=uuid.uuid4()
+                #Save tokenStorage to database
+                cur = mysql.connection.cursor()
+                cur.execute("UPDATE user SET token_storage=%s WHERE username=%s;",[token_storage,username])
+                # Commit to DB
+                mysql.connection.commit()
+                # Close connection
+                cur.close()
+            else:
+                token_storage = token_storage_data
+            return token_storage
+
         # Checking username
+        data = data(username)
+    
         if data == ():
             postContent = jsonify(token = "Null",message ="Wrong Username")
 
@@ -47,28 +69,44 @@ class SignIn(Resource):
             data=list(data)
             token_data =data[0]['token']
             pass_data =data[0]['user_password']
+            token_storage_data =data[0]['token_storage']
 
             # Checking password
             if password == pass_data:
-                postContent = jsonify(token = uuid.uuid4(),message ="Welcome")
+                token_storage = generateStorageToken(token_storage_data)
+                postContent = jsonify(token = token_storage,message ="Welcome")
 
-                    #Check and Update Token
+                #Check and Update Token
                 if token_data == tokenNotification:
                     pass
                 elif token_data == None:
-                     cur.execute("UPDATE user SET token=%s WHERE username=%s;",[tokenNotification,username])
-                     # Commit to DB
-                     mysql.connection.commit()
+                    cur = mysql.connection.cursor()
+                    cur.execute("UPDATE user SET token=%s WHERE username=%s;",[tokenNotification,username])
+
+                    # Commit to DB
+                    mysql.connection.commit()
+
+                    # Close connection
+                    cur.close()
+
                 else:
-                    pass
+                    cur = mysql.connection.cursor()
+                    cur.execute("UPDATE user SET token=%s WHERE username=%s;",[tokenNotification,username])
+                    
+                    # Commit to DB
+                    mysql.connection.commit()
+                    
+                    # Close connection
+                    cur.close()
 
 
             else:
                 postContent = jsonify(token = "Null",message ="Wrong Password")
-            print(username,password)
+
         return postContent
         # Commit to DB
         mysql.connection.commit()
+        
         # Close connection
         cur.close()
 
@@ -100,6 +138,10 @@ class ForgotPassword(Resource):
         cur.close()       
         return postContent
 
+class Status(Resource):
+    def post(self,user_id,status):
+        print(user_id)
+        return jsonify(message= status+" Status is Receipt")
 
 
 def special_requirement(f):
@@ -162,11 +204,14 @@ def send_images(cust_id):
     return jsonify(message='image received.',
                     status=200
                 )
-#Rest Api Resource Areas
-    #SignIn Sources
+###Rest Api Resource Areas
+#SignIn Sources
 api.add_resource(SignIn,"/<string:username>/<string:password>/<string:tokenNotification>")
-    #forgetPassword Sources
+#forgetPassword Sources
 api.add_resource(ForgotPassword,"/forgotPassword/<string:username>/<string:oldPassword>/<string:password>")
+#status
+api.add_resource(Status,"/status/<string:user_id>/<string:status>")
+
 
 
 
