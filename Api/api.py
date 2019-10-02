@@ -143,6 +143,15 @@ class Status(Resource):
         print(user_id)
         return jsonify(message= status+" Status is Receipt")
 
+class Hello(Resource):
+    def post(self):
+        json_data = request.get_json(force=True)
+        un = json_data['username']
+        pw = json_data['password']
+
+        return jsonify(u=un, p=pw)
+
+
 
 def special_requirement(f):
     @wraps(f)
@@ -166,15 +175,24 @@ def protected(foldername,filename):
     except Exception as e:
         return e
 
-@app.route("/static/<string:foldername>/<string:filename>/<string:appSecretKey>/")
 
+
+@app.route("/static/<string:foldername>/<string:filename>/<string:appSecretKey>/")
 def protectedOpenWithKey(foldername,filename,appSecretKey):
 
     def special_requirement(f):
         @wraps(f)
         def wrap(*args ,**kwargs):
+            # Take token and Check
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT token_storage FROM user WHERE username = %s",[foldername])
+            token =cur.fetchall()
+            token = list(token)[0]
+            token = token['token_storage']
+            print(token)
+
             try:
-                if appSecretKey == "bluerabbit":
+                if appSecretKey == token:
                     return f(*args ,**kwargs)
                 else:
                     return "token except"
@@ -211,6 +229,8 @@ api.add_resource(SignIn,"/<string:username>/<string:password>/<string:tokenNotif
 api.add_resource(ForgotPassword,"/forgotPassword/<string:username>/<string:oldPassword>/<string:password>")
 #status
 api.add_resource(Status,"/status/<string:user_id>/<string:status>")
+
+api.add_resource(Hello,"/hello")
 
 
 
