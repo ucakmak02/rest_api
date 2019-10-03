@@ -139,7 +139,7 @@ class ForgotPassword(Resource):
         return postContent
 
 class Status(Resource):
-    def post(self,user_id,status):
+    def post(self):
         json_data = request.get_json(force=True)
         user_id = json_data['userid']
         status = json_data['pictureStatus']
