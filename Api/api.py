@@ -222,7 +222,7 @@ api.add_resource(SignIn,"/<string:username>/<string:password>/<string:tokenNotif
 #forgetPassword Sources
 api.add_resource(ForgotPassword,"/forgotPassword/<string:username>/<string:oldPassword>/<string:password>")
 #status
-api.add_resource(Status,"/status/<string:user_id>/<string:status>")
+api.add_resource(Status,"/status")
 
 
 
