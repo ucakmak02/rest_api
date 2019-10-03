@@ -140,17 +140,11 @@ class ForgotPassword(Resource):
 
 class Status(Resource):
     def post(self,user_id,status):
-        print(user_id)
-        return jsonify(message= status+" Status is Receipt")
-
-class Hello(Resource):
-    def post(self):
         json_data = request.get_json(force=True)
-        un = json_data['username']
-        pw = json_data['password']
+        user_id = json_data['userid']
+        status = json_data['pictureStatus']
 
-        return jsonify(u=un, p=pw)
-
+        return jsonify(message = status+"Status is Receipt")
 
 
 def special_requirement(f):
@@ -230,7 +224,6 @@ api.add_resource(ForgotPassword,"/forgotPassword/<string:username>/<string:oldPa
 #status
 api.add_resource(Status,"/status/<string:user_id>/<string:status>")
 
-api.add_resource(Hello,"/hello")
 
 
 
