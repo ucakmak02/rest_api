@@ -25,7 +25,7 @@ app.logger.info('Attempt mysql connection with user=root db=bh_db')
 # Config MySQL
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = "root"
-app.config['MYSQL_PASSWORD'] = "Kartalx1986"
+app.config['MYSQL_PASSWORD'] = "********"
 app.config['MYSQL_DB'] = "homesafety"
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 app.config['default_authentication_plugin']='sha2_password'
