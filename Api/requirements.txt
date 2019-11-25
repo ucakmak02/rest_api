@@ -7,3 +7,4 @@ uuid
 jsonify
 numpy
 opencv-python
+pyfcm

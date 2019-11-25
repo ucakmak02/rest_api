@@ -13,9 +13,10 @@ import cv2
 import os
 import subprocess
 
+from pyfcm import FCMNotification
 # image save path
 path ="/src/static/"
-
+fb_api_key = "AAAAFJdH0Qs:APA91bHuYiJqrTmxIENcvS4bfYvmU4nlPpW0xEkvPjjYNDlC6ryBP7p-BGGNzNGaPm2bJ5QkkVokxbggvC5RPmPM1T9xUlP8RxemBRW0zUPLxwp6OvhG-3mSTVJ4L6MLxPuhnJj-OsyP"
 app = Flask(__name__,instance_path=path)
 CORS(app)
 api = Api(app)
@@ -208,11 +209,22 @@ def send_images(cust_id):
     if not os.path.exists(os.path.join(path, cust_id)):
         os.makedirs(os.path.join(path, cust_id))
     # get the current number of images on customer folder
-    number = len(os.listdir(os.path.join(path, cust_id)))
-    nparr = np.fromstring(request.data, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    # save image to customer folder
-    cv2.imwrite(os.path.join(path, cust_id,f"{number}.jpg"), img)
+    number = 1
+    images = request.files.getlist("images")
+    for img in images:
+        img.save(os.path.join(path, cust_id,f"{number}.jpg"))
+        number += 1
+
+    #send notification
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT token FROM user WHERE username='{}'".format(cust_id))
+    token = cur.fetchone()
+    push_service = FCMNotification(api_key=fb_api_key)
+    registration_id = str(f"{token['token']}")
+    message_title = "Danger Detected!"
+    message_body = "A Danger situation happened on oven. Due to this danger situation Nuriel turned off the oven. Please verify thşs stiuation!"
+    result = push_service.notify_single_device(registration_id=registration_id, message_title=message_title, message_body=message_body)
+    # 1123123/static/1.jpg
     return jsonify(message='image received.',
                     status=200
                 )
