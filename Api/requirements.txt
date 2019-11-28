@@ -8,3 +8,4 @@ jsonify
 numpy
 opencv-python
 pyfcm
+flask-socketio

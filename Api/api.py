@@ -7,11 +7,14 @@ from flask_cors import CORS
 import uuid
 from flask_mysqldb import MySQL
 from functools import wraps
+from flask_socketio import SocketIO
 
 import numpy as np
 import cv2
 import os
 import subprocess
+
+import time
 
 from pyfcm import FCMNotification
 # image save path
@@ -35,6 +38,7 @@ app.logger.info('mysql connection with user=root db=homesafety successfull')
 # init MYSQL
 mysql = MySQL(app)
 
+socketio = SocketIO(app)
 class SignIn(Resource):
     def post(self,username,password,tokenNotification):
 
@@ -144,6 +148,7 @@ class Status(Resource):
         json_data = request.get_json(force=True)
         user_id = json_data['userid']
         status = json_data['pictureStatus']
+        socketio.emit("{}".format(user_id), {"message": status})
 
         return jsonify(message = status+"Status is Receipt")
 
@@ -211,8 +216,10 @@ def send_images(cust_id):
     # get the current number of images on customer folder
     number = 1
     images = request.files.getlist("images")
+    data_message = {}
     for img in images:
         img.save(os.path.join(path, cust_id,f"{number}.jpg"))
+        data_message[f"image_{number}"] = f"http://134.119.194.237:7000/static/highstone/{number}.jpg/47f6da8f-4409-48c4-86d2-3b926f3cbf54/"
         number += 1
 
     #send notification
@@ -222,8 +229,8 @@ def send_images(cust_id):
     push_service = FCMNotification(api_key=fb_api_key)
     registration_id = str(f"{token['token']}")
     message_title = "Danger Detected!"
-    message_body = "A Danger situation happened on oven. Due to this danger situation Nuriel turned off the oven. Please verify thşs stiuation!"
-    result = push_service.notify_single_device(registration_id=registration_id, message_title=message_title, message_body=message_body)
+    message_body = "A Danger situation happened on oven. Due to this danger situation Nuriel turned off the oven. Please verify this stiuation!"
+    result = push_service.notify_single_device(registration_id=registration_id, message_title=message_title, message_body=message_body, data_message=data_message)
     # 1123123/static/1.jpg
     return jsonify(message='image received.',
                     status=200
