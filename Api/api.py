@@ -17,23 +17,22 @@ import subprocess
 import time
 
 from pyfcm import FCMNotification
+
+import config as cfg
+
 # image save path
-path ="/src/static/"
-fb_api_key = "AAAAFJdH0Qs:APA91bHuYiJqrTmxIENcvS4bfYvmU4nlPpW0xEkvPjjYNDlC6ryBP7p-BGGNzNGaPm2bJ5QkkVokxbggvC5RPmPM1T9xUlP8RxemBRW0zUPLxwp6OvhG-3mSTVJ4L6MLxPuhnJj-OsyP"
+path =os.getenv("PATH")
+fb_api_key = os.getenv("FIRE_BASE_API_KEY")
+
 app = Flask(__name__,instance_path=path)
 CORS(app)
 api = Api(app)
-app.secret_key='secret123'
-
-app.logger.info('Attempt mysql connection with user=root db=bh_db')
+app.logger.info(f'Attempt mysql connection with user={os.getenv("MYSQL_USER")} \
+                                                db={os.getenv("MYSQL_DATABASE")}')
 # Config MySQL
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = "root"
-app.config['MYSQL_PASSWORD'] = "********"
-app.config['MYSQL_DB'] = "homesafety"
-app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
-app.config['default_authentication_plugin']='sha2_password'
-app.logger.info('mysql connection with user=root db=homesafety successfull')
+app.config.from_pyfile("config.py")
+app.logger.info(f'mysql connection with user={os.getenv("MYSQL_USER")} \
+                                        db={os.getenv("MYSQL_DATABASE")} successfull')
 
 # init MYSQL
 mysql = MySQL(app)
@@ -152,6 +151,30 @@ class Status(Resource):
 
         return jsonify(message = status+"Status is Receipt")
 
+class Notification(Resource):
+    def post(self):
+        json_data = request.get_json(force=True)
+        user_id = json_data['userid']
+        is_notification_enabled = json_data['notification_enabled']
+
+        cur = mysql.connection.cursor()
+        cur.execute(f"UPDATE user SET notification_enabled='{is_notification_enabled}' WHERE username='{user_id}';")
+        mysql.connection.commit()
+
+        return jsonify({"ok": True, "message": "Notification status is successfully saved."})
+
+class NotificationStatus(Resource):
+    def post(self):
+        json_data = request.get_json(force=True)
+        user_id = json_data['userid']
+        cur = mysql.connection.cursor()
+        cur.execute(f"SELECT notification_enabled FROM user WHERE username='{user_id}';")
+        is_enabled = cur.fetchone()
+        if is_enabled["notification_enabled"] == "False" or is_enabled["notification_enabled"] == "false":
+            is_enabled = False
+        else:
+            is_enabled = True
+        return jsonify({"ok": True, "notification_status": is_enabled})
 
 def special_requirement(f):
     @wraps(f)
@@ -242,8 +265,9 @@ api.add_resource(SignIn,"/<string:username>/<string:password>/<string:tokenNotif
 api.add_resource(ForgotPassword,"/forgotPassword/<string:username>/<string:oldPassword>/<string:password>")
 #status
 api.add_resource(Status,"/status")
-
-
+#notification
+api.add_resource(Notification, "/change_notification_status")
+api.add_resource(NotificationStatus, "/notification_status")
 
 
 
